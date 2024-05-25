@@ -1,6 +1,8 @@
 from django.contrib.auth.models import (
     AbstractUser,
     BaseUserManager,
+    Group,
+    Permission,
 )
 from django.db import models
 from django.utils.translation import gettext as _
@@ -48,3 +50,18 @@ class User(AbstractUser):
     REQUIRED_FIELDS = []
 
     objects = UserManager()
+
+    groups = models.ManyToManyField(
+        Group,
+        verbose_name=_("groups"),
+        blank=True,
+        related_name="user_set_custom",
+        related_query_name="user_custom",
+    )
+    user_permissions = models.ManyToManyField(
+        Permission,
+        verbose_name=_("user permissions"),
+        blank=True,
+        related_name="user_set_custom",
+        related_query_name="user_custom",
+    )
