@@ -25,7 +25,7 @@ from flights.serializers import (
 
 
 class CountryViewSet(viewsets.ModelViewSet):
-    queryset = Country.objects.all().select_related("city")
+    queryset = Country.objects.all()
     serializer_class = CountrySerializer
     permission_classes = (IsAdminOrIfAuthenticatedReadOnly,)
 
