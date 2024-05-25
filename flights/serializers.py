@@ -8,7 +8,7 @@ from flights.models import (
     Route,
     Flight,
     Order,
-    Ticket
+    Ticket,
 )
 
 

@@ -8,7 +8,7 @@ from flights.models import (
     Route,
     Flight,
     Order,
-    Ticket
+    Ticket,
 )
 from flights.serializers import (
     CountrySerializer,
@@ -19,7 +19,7 @@ from flights.serializers import (
     RouteSerializer,
     FlightSerializer,
     OrderSerializer,
-    TicketSerializer
+    TicketSerializer,
 )
 
 
