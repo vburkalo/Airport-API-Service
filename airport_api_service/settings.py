@@ -1,6 +1,8 @@
 from datetime import timedelta
 from pathlib import Path
 
+import flights.permissions
+
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -29,6 +31,7 @@ INSTALLED_APPS = [
     "django.contrib.messages",
     "django.contrib.staticfiles",
     "rest_framework",
+    "rest_framework.authtoken",
     "rest_framework_simplejwt",
     "flights",
     "drf_spectacular",
@@ -133,14 +136,18 @@ REST_FRAMEWORK = {
     "DEFAULT_THROTTLE_RATES": {"anon": "1000/day", "user": "3000/day"},
     "DEFAULT_AUTHENTICATION_CLASSES": (
         "rest_framework_simplejwt.authentication.JWTAuthentication",
+        "rest_framework.authentication.TokenAuthentication",
     ),
+    "DEFAULT_PERMISSION_CLASSES": [
+        "flights.permissions.IsAdminOrIfAuthenticatedReadOnly",
+    ],
 }
 
+
 SPECTACULAR_SETTINGS = {
-    "TITLE": "Airport API Service",
-    "DESCRIPTION": "Order flights tickets",
-    "VERSION": "2.0.0",
-    "OPENAPI_VERSION": "3.1.0",
+    "TITLE": 'Airport API Service',
+    "DESCRIPTION": 'Order flights tickets',
+    "VERSION": "3.1.0",
     "SERVE_INCLUDE_SCHEMA": False,
     "SWAGGER_UI_SETTINGS": {
         "deepLinking": True,
@@ -151,7 +158,7 @@ SPECTACULAR_SETTINGS = {
 }
 
 SIMPLE_JWT = {
-    "ACCESS_TOKEN_LIFETIME": timedelta(minutes=5),
+    "ACCESS_TOKEN_LIFETIME": timedelta(minutes=60),
     "REFRESH_TOKEN_LIFETIME": timedelta(days=1),
     "ROTATE_REFRESH_TOKENS": False,
 }
