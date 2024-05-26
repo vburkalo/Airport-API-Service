@@ -47,7 +47,7 @@ class CityViewSet(viewsets.ModelViewSet):
         ]
     )
     def list(self, request, *args, **kwargs):
-        country_ids = request.query_params.getlist('country')
+        country_ids = request.query_params.getlist("country")
 
         if country_ids:
             country_ids = [int(cid) for cid in country_ids if cid.isdigit()]
@@ -71,7 +71,7 @@ class AirportViewSet(viewsets.ModelViewSet):
         ]
     )
     def list(self, request, *args, **kwargs):
-        city_ids = request.query_params.getlist('city')
+        city_ids = request.query_params.getlist("city")
 
         if city_ids:
             city_ids = [int(cid) for cid in city_ids if cid.isdigit()]
@@ -102,10 +102,12 @@ class AirplaneViewSet(viewsets.ModelViewSet):
     )
     def list(self, request, *args, **kwargs):
         """Get list of airplanes by type"""
-        airplane_types = request.query_params.getlist('airplane_types')
+        airplane_types = request.query_params.getlist("airplane_types")
 
         if airplane_types:
-            airplane_types = [int(type_id) for type_id in airplane_types if type_id.isdigit()]
+            airplane_types = [
+                int(type_id) for type_id in airplane_types if type_id.isdigit()
+            ]
             self.queryset = self.queryset.filter(airplane_type_id__in=airplane_types)
 
         return super().list(request, *args, **kwargs)
@@ -127,12 +129,12 @@ class RouteViewSet(viewsets.ModelViewSet):
                 "destination",
                 type={"type": "array", "items": {"type": "number"}},
                 description="Filter by destination airport id (ex. ?destination=1,2)",
-            )
+            ),
         ]
     )
     def list(self, request, *args, **kwargs):
-        source_ids = request.query_params.getlist('source')
-        destination_ids = request.query_params.getlist('destination')
+        source_ids = request.query_params.getlist("source")
+        destination_ids = request.query_params.getlist("destination")
 
         if source_ids:
             source_ids = [int(sid) for sid in source_ids if sid.isdigit()]
@@ -161,12 +163,12 @@ class FlightViewSet(viewsets.ModelViewSet):
                 "airplane",
                 type={"type": "array", "items": {"type": "number"}},
                 description="Filter by airplane id (ex. ?airplane=1,2)",
-            )
+            ),
         ]
     )
     def list(self, request, *args, **kwargs):
-        route_ids = request.query_params.getlist('route')
-        airplane_ids = request.query_params.getlist('airplane')
+        route_ids = request.query_params.getlist("route")
+        airplane_ids = request.query_params.getlist("airplane")
 
         if route_ids:
             route_ids = [int(rid) for rid in route_ids if rid.isdigit()]
@@ -201,12 +203,12 @@ class TicketViewSet(viewsets.ModelViewSet):
                 "order",
                 type={"type": "array", "items": {"type": "number"}},
                 description="Filter by order id (ex. ?order=1,2)",
-            )
+            ),
         ]
     )
     def list(self, request, *args, **kwargs):
-        flight_ids = request.query_params.getlist('flight')
-        order_ids = request.query_params.getlist('order')
+        flight_ids = request.query_params.getlist("flight")
+        order_ids = request.query_params.getlist("order")
 
         if flight_ids:
             flight_ids = [int(fid) for fid in flight_ids if fid.isdigit()]
