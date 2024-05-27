@@ -24,10 +24,11 @@ class City(models.Model):
 
 class Airport(models.Model):
     name = models.CharField(max_length=64)
+    code = models.CharField(max_length=3, unique=True)
     closest_big_city = models.ForeignKey(City, on_delete=models.CASCADE)
 
     def __str__(self):
-        return self.name
+        return f"{self.name} - {self.code}"
 
 
 class AirplaneType(models.Model):
