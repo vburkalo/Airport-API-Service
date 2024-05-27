@@ -73,14 +73,12 @@ class AirplaneSerializer(serializers.ModelSerializer):
         return obj.capacity
 
     def create(self, validated_data):
-        airplane_type_data = validated_data.pop('airplane_type')
-        airplane_type, created = AirplaneType.objects.get_or_create(**airplane_type_data)
+        airplane_type = validated_data.pop('airplane_type')
         airplane = Airplane.objects.create(airplane_type=airplane_type, **validated_data)
         return airplane
 
     def update(self, instance, validated_data):
-        airplane_type_data = validated_data.pop('airplane_type')
-        airplane_type, created = AirplaneType.objects.get_or_create(**airplane_type_data)
+        airplane_type = validated_data.pop('airplane_type')
 
         instance.name = validated_data.get('name', instance.name)
         instance.rows = validated_data.get('rows', instance.rows)
@@ -92,16 +90,32 @@ class AirplaneSerializer(serializers.ModelSerializer):
 
 class RouteSerializer(serializers.ModelSerializer):
     source = serializers.PrimaryKeyRelatedField(queryset=Airport.objects.all())
+    source_name = serializers.SerializerMethodField()
     destination = serializers.PrimaryKeyRelatedField(queryset=Airport.objects.all())
+    destination_name = serializers.SerializerMethodField()
     distance_display = serializers.SerializerMethodField()
 
     class Meta:
         model = Route
-        fields = ("id", "source", "destination", "distance", "distance_display")
+        fields = (
+            "id",
+            "source",
+            "destination",
+            "distance",
+            "distance_display",
+            "source_name",
+            "destination_name",
+        )
 
     def get_distance_display(self, obj):
         distance_miles = obj.distance * 0.621371
         return f"{obj.distance} km ({distance_miles:.2f} miles)"
+
+    def get_source_name(self, obj):
+        return obj.source.name
+
+    def get_destination_name(self, obj):
+        return obj.destination.name
 
 
 class CrewSerializer(serializers.ModelSerializer):
@@ -118,7 +132,16 @@ class FlightSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Flight
-        fields = ("id", "route", "airplane", "crew", "airplane_name", "airplane_capacity", "departure_time", "arrival_time")
+        fields = (
+            "id",
+            "route",
+            "airplane",
+            "crew",
+            "airplane_name",
+            "airplane_capacity",
+            "departure_time",
+            "arrival_time",
+        )
 
     def get_airplane_capacity(self, obj):
         return obj.airplane.capacity
