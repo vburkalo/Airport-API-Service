@@ -10,9 +10,11 @@ services:
       sh -c "python manage.py wait_for_db &&
             python manage.py makemigrations &&
             python manage.py migrate && 
+            python manage.py collectstatic --noinput &&
             python manage.py runserver 0.0.0.0:8080"
     volumes:
       - my_media:/files/media
+      - my_static:/files/static
     depends_on:
       - db
   db:
@@ -28,3 +30,4 @@ services:
 volumes:
   my_bd:
   my_media:
+  my_static:
