@@ -35,7 +35,7 @@ class AirportSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Airport
-        fields = ("id", "name", "closest_big_city_id")
+        fields = ("id", "name", "code", "closest_big_city_id")
 
     def create(self, validated_data):
         closest_big_city = validated_data.pop('closest_big_city')
