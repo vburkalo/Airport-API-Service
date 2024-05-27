@@ -10,7 +10,7 @@ from flights.models import (
     Route,
     Flight,
     Order,
-    Ticket,
+    Ticket, Crew,
 )
 from flights.permissions import IsAdminOrIfAuthenticatedReadOnly
 from flights.serializers import (
@@ -22,7 +22,7 @@ from flights.serializers import (
     RouteSerializer,
     FlightSerializer,
     OrderSerializer,
-    TicketSerializer,
+    TicketSerializer, CrewSerializer,
 )
 
 
@@ -145,6 +145,12 @@ class RouteViewSet(viewsets.ModelViewSet):
             self.queryset = self.queryset.filter(destination_id__in=destination_ids)
 
         return super().list(request, *args, **kwargs)
+
+
+class CrewViewSet(viewsets.ModelViewSet):
+    queryset = Crew.objects.all()
+    serializer_class = CrewSerializer
+    permission_classes = (IsAdminOrIfAuthenticatedReadOnly,)
 
 
 class FlightViewSet(viewsets.ModelViewSet):
