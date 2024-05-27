@@ -20,10 +20,14 @@ class CountrySerializer(serializers.ModelSerializer):
 
 
 class CitySerializer(serializers.ModelSerializer):
+    country_name = serializers.SerializerMethodField()
 
     class Meta:
         model = City
-        fields = ("id", "name", "country")
+        fields = ("id", "name", "country", "country_name")
+
+    def get_country_name(self, obj):
+        return obj.country.name
 
 
 class AirportSerializer(serializers.ModelSerializer):
