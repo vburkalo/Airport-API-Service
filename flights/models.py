@@ -28,7 +28,7 @@ class Airport(models.Model):
     closest_big_city = models.ForeignKey(City, on_delete=models.CASCADE)
 
     def __str__(self):
-        return f"{self.name} - {self.code}"
+        return f"{self.name} ({self.code})"
 
 
 class AirplaneType(models.Model):
