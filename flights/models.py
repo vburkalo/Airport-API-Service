@@ -77,9 +77,22 @@ class Route(models.Model):
         return f"{self.source} to {self.destination} ({distance_km} km / {distance_miles:.2f} miles)"
 
 
+class Crew(models.Model):
+    first_name = models.CharField(max_length=64)
+    last_name = models.CharField(max_length=64)
+
+    def __str__(self):
+        return self.first_name + " " + self.last_name
+
+    @property
+    def full_name(self):
+        return f"{self.first_name} {self.last_name}"
+
+
 class Flight(models.Model):
     route = models.ForeignKey(Route, on_delete=models.CASCADE)
     airplane = models.ForeignKey(Airplane, on_delete=models.CASCADE)
+    crew = models.ForeignKey(Crew, on_delete=models.CASCADE)
     departure_time = models.DateTimeField()
     arrival_time = models.DateTimeField()
 
