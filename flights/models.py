@@ -72,7 +72,9 @@ class Route(models.Model):
     distance = models.IntegerField()
 
     def __str__(self):
-        return f"{self.source} to {self.destination}"
+        distance_km = self.distance
+        distance_miles = self.distance * 0.621371
+        return f"{self.source} to {self.destination} ({distance_km} km / {distance_miles:.2f} miles)"
 
 
 class Flight(models.Model):
