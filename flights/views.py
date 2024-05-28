@@ -1,4 +1,3 @@
-from drf_spectacular import openapi
 from drf_spectacular.utils import extend_schema, OpenApiParameter
 from rest_framework import viewsets
 from flights.models import (
@@ -25,6 +24,8 @@ from flights.serializers import (
     OrderSerializer,
     TicketSerializer,
     CrewSerializer,
+    TicketReadOnlySerializer,
+    OrderReadOnlySerializer,
 )
 
 
@@ -194,6 +195,11 @@ class OrderViewSet(viewsets.ModelViewSet):
     serializer_class = OrderSerializer
     permission_classes = (IsAdminOrIfAuthenticatedReadOnly,)
 
+    def get_serializer_class(self):
+        if self.action == "list":
+            return OrderReadOnlySerializer
+        return OrderSerializer
+
 
 class TicketViewSet(viewsets.ModelViewSet):
     queryset = Ticket.objects.all().select_related("flight", "order")
@@ -227,3 +233,9 @@ class TicketViewSet(viewsets.ModelViewSet):
             self.queryset = self.queryset.filter(order_id__in=order_ids)
 
         return super().list(request, *args, **kwargs)
+
+
+    def get_serializer_class(self):
+        if self.action == "list":
+            return TicketReadOnlySerializer
+        return TicketSerializer
