@@ -2,7 +2,7 @@ from django.db import migrations, models
 
 
 def populate_code(apps, schema_editor):
-    Airport = apps.get_model('flights', 'Airport')
+    Airport = apps.get_model("flights", "Airport")
     for airport in Airport.objects.all():
         airport.code = "DCA"
         airport.save()
@@ -11,7 +11,7 @@ def populate_code(apps, schema_editor):
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('flights', '0006_airport_code'),
+        ("flights", "0006_airport_code"),
     ]
 
     operations = [

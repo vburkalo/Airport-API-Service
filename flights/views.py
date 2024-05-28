@@ -10,7 +10,8 @@ from flights.models import (
     Route,
     Flight,
     Order,
-    Ticket, Crew,
+    Ticket,
+    Crew,
 )
 from flights.permissions import IsAdminOrIfAuthenticatedReadOnly
 from flights.serializers import (
@@ -22,7 +23,8 @@ from flights.serializers import (
     RouteSerializer,
     FlightSerializer,
     OrderSerializer,
-    TicketSerializer, CrewSerializer,
+    TicketSerializer,
+    CrewSerializer,
 )
 
 

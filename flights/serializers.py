@@ -9,7 +9,8 @@ from flights.models import (
     Route,
     Flight,
     Order,
-    Ticket, Crew,
+    Ticket,
+    Crew,
 )
 
 
@@ -32,9 +33,7 @@ class CitySerializer(serializers.ModelSerializer):
 
 class AirportSerializer(serializers.ModelSerializer):
     closest_big_city_id = serializers.PrimaryKeyRelatedField(
-        queryset=City.objects.all(),
-        source='closest_big_city',
-        write_only=True
+        queryset=City.objects.all(), source="closest_big_city", write_only=True
     )
 
     class Meta:
@@ -42,8 +41,10 @@ class AirportSerializer(serializers.ModelSerializer):
         fields = ("id", "name", "code", "closest_big_city_id")
 
     def create(self, validated_data):
-        closest_big_city = validated_data.pop('closest_big_city')
-        airport = Airport.objects.create(closest_big_city=closest_big_city, **validated_data)
+        closest_big_city = validated_data.pop("closest_big_city")
+        airport = Airport.objects.create(
+            closest_big_city=closest_big_city, **validated_data
+        )
         return airport
 
 
@@ -54,7 +55,9 @@ class AirplaneTypeSerializer(serializers.ModelSerializer):
 
 
 class AirplaneSerializer(serializers.ModelSerializer):
-    airplane_type = serializers.PrimaryKeyRelatedField(queryset=AirplaneType.objects.all())
+    airplane_type = serializers.PrimaryKeyRelatedField(
+        queryset=AirplaneType.objects.all()
+    )
     capacity = serializers.SerializerMethodField()
 
     class Meta:
@@ -73,16 +76,20 @@ class AirplaneSerializer(serializers.ModelSerializer):
         return obj.capacity
 
     def create(self, validated_data):
-        airplane_type = validated_data.pop('airplane_type')
-        airplane = Airplane.objects.create(airplane_type=airplane_type, **validated_data)
+        airplane_type = validated_data.pop("airplane_type")
+        airplane = Airplane.objects.create(
+            airplane_type=airplane_type, **validated_data
+        )
         return airplane
 
     def update(self, instance, validated_data):
-        airplane_type = validated_data.pop('airplane_type')
+        airplane_type = validated_data.pop("airplane_type")
 
-        instance.name = validated_data.get('name', instance.name)
-        instance.rows = validated_data.get('rows', instance.rows)
-        instance.seats_in_row = validated_data.get('seats_in_row', instance.seats_in_row)
+        instance.name = validated_data.get("name", instance.name)
+        instance.rows = validated_data.get("rows", instance.rows)
+        instance.seats_in_row = validated_data.get(
+            "seats_in_row", instance.seats_in_row
+        )
         instance.airplane_type = airplane_type
         instance.save()
         return instance
@@ -119,7 +126,7 @@ class RouteSerializer(serializers.ModelSerializer):
 
 
 class CrewSerializer(serializers.ModelSerializer):
-    full_name = serializers.CharField(source='get_full_name', read_only=True)
+    full_name = serializers.CharField(source="get_full_name", read_only=True)
 
     class Meta:
         model = Crew
@@ -129,10 +136,12 @@ class CrewSerializer(serializers.ModelSerializer):
 class FlightSerializer(serializers.ModelSerializer):
     route = RouteSerializer()
     airplane = serializers.PrimaryKeyRelatedField(queryset=Airplane.objects.all())
-    airplane_name = serializers.CharField(source='airplane.name', read_only=True)
+    airplane_name = serializers.CharField(source="airplane.name", read_only=True)
     airplane_capacity = serializers.SerializerMethodField()
     crew = CrewSerializer(many=True, read_only=True)
-    crew_ids = serializers.PrimaryKeyRelatedField(queryset=Crew.objects.all(), many=True, write_only=True)
+    crew_ids = serializers.PrimaryKeyRelatedField(
+        queryset=Crew.objects.all(), many=True, write_only=True
+    )
 
     class Meta:
         model = Flight
@@ -152,9 +161,9 @@ class FlightSerializer(serializers.ModelSerializer):
         return obj.airplane.capacity
 
     def create(self, validated_data):
-        route_data = validated_data.pop('route')
-        airplane = validated_data.pop('airplane')
-        crew_data = validated_data.pop('crew_ids', None)
+        route_data = validated_data.pop("route")
+        airplane = validated_data.pop("airplane")
+        crew_data = validated_data.pop("crew_ids", None)
 
         route = Route.objects.create(**route_data)
         flight = Flight.objects.create(airplane=airplane, route=route, **validated_data)
@@ -164,9 +173,9 @@ class FlightSerializer(serializers.ModelSerializer):
         return flight
 
     def update(self, instance, validated_data):
-        route_data = validated_data.pop('route')
-        airplane = validated_data.pop('airplane')
-        crew_data = validated_data.pop('crew_ids', None)
+        route_data = validated_data.pop("route")
+        airplane = validated_data.pop("airplane")
+        crew_data = validated_data.pop("crew_ids", None)
 
         for attr, value in route_data.items():
             setattr(instance.route, attr, value)
@@ -197,15 +206,17 @@ class TicketSerializer(serializers.ModelSerializer):
         fields = ("id", "row", "seat", "flight", "order")
 
     def create(self, validated_data):
-        flight_data = validated_data.pop('flight')
-        order_data = validated_data.pop('order')
+        flight_data = validated_data.pop("flight")
+        order_data = validated_data.pop("order")
 
-        route_data = flight_data.pop('route')
-        airplane_data = flight_data.pop('airplane')
-        crew_data = flight_data.pop('crew_ids', None)
+        route_data = flight_data.pop("route")
+        airplane_data = flight_data.pop("airplane")
+        crew_data = flight_data.pop("crew_ids", None)
 
         route = Route.objects.create(**route_data)
-        flight = Flight.objects.create(airplane=airplane_data, route=route, **flight_data)
+        flight = Flight.objects.create(
+            airplane=airplane_data, route=route, **flight_data
+        )
         if crew_data:
             flight.crew.set(crew_data)
 
@@ -216,12 +227,12 @@ class TicketSerializer(serializers.ModelSerializer):
         return ticket
 
     def update(self, instance, validated_data):
-        flight_data = validated_data.pop('flight')
-        order_data = validated_data.pop('order')
+        flight_data = validated_data.pop("flight")
+        order_data = validated_data.pop("order")
 
-        route_data = flight_data.pop('route')
-        airplane_data = flight_data.pop('airplane')
-        crew_data = flight_data.pop('crew_ids', None)
+        route_data = flight_data.pop("route")
+        airplane_data = flight_data.pop("airplane")
+        crew_data = flight_data.pop("crew_ids", None)
 
         for attr, value in route_data.items():
             setattr(instance.flight.route, attr, value)
