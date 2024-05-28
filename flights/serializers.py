@@ -1,3 +1,4 @@
+from users.models import User
 from rest_framework import serializers
 
 from flights.models import (
@@ -12,6 +13,12 @@ from flights.models import (
     Ticket,
     Crew,
 )
+
+
+class UserSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = User
+        fields = ("id", "email")
 
 
 class CountrySerializer(serializers.ModelSerializer):
@@ -134,7 +141,7 @@ class CrewSerializer(serializers.ModelSerializer):
 
 
 class FlightSerializer(serializers.ModelSerializer):
-    route = RouteSerializer()
+    route = serializers.PrimaryKeyRelatedField(queryset=Route.objects.all())
     airplane = serializers.PrimaryKeyRelatedField(queryset=Airplane.objects.all())
     airplane_name = serializers.CharField(source="airplane.name", read_only=True)
     airplane_capacity = serializers.SerializerMethodField()
@@ -191,66 +198,31 @@ class FlightSerializer(serializers.ModelSerializer):
         return instance
 
 
+class OrderReadOnlySerializer(serializers.ModelSerializer):
+    user = UserSerializer(read_only=True, allow_null=True)
+
+    class Meta:
+        model = Order
+        fields = ("id", "created_at", "user")
+
+
 class OrderSerializer(serializers.ModelSerializer):
     class Meta:
         model = Order
         fields = ("id", "created_at", "user")
 
 
-class TicketSerializer(serializers.ModelSerializer):
+class TicketReadOnlySerializer(serializers.ModelSerializer):
     flight = FlightSerializer()
-    order = OrderSerializer()
+    order = OrderReadOnlySerializer()
 
     class Meta:
         model = Ticket
         fields = ("id", "row", "seat", "flight", "order")
 
-    def create(self, validated_data):
-        flight_data = validated_data.pop("flight")
-        order_data = validated_data.pop("order")
 
-        route_data = flight_data.pop("route")
-        airplane_data = flight_data.pop("airplane")
-        crew_data = flight_data.pop("crew_ids", None)
+class TicketSerializer(serializers.ModelSerializer):
 
-        route = Route.objects.create(**route_data)
-        flight = Flight.objects.create(
-            airplane=airplane_data, route=route, **flight_data
-        )
-        if crew_data:
-            flight.crew.set(crew_data)
-
-        order = Order.objects.create(**order_data)
-
-        ticket = Ticket.objects.create(flight=flight, order=order, **validated_data)
-
-        return ticket
-
-    def update(self, instance, validated_data):
-        flight_data = validated_data.pop("flight")
-        order_data = validated_data.pop("order")
-
-        route_data = flight_data.pop("route")
-        airplane_data = flight_data.pop("airplane")
-        crew_data = flight_data.pop("crew_ids", None)
-
-        for attr, value in route_data.items():
-            setattr(instance.flight.route, attr, value)
-        instance.flight.route.save()
-
-        instance.flight.airplane = airplane_data
-        for attr, value in flight_data.items():
-            setattr(instance.flight, attr, value)
-        instance.flight.save()
-        if crew_data:
-            instance.flight.crew.set(crew_data)
-
-        for attr, value in order_data.items():
-            setattr(instance.order, attr, value)
-        instance.order.save()
-
-        for attr, value in validated_data.items():
-            setattr(instance, attr, value)
-        instance.save()
-
-        return instance
+    class Meta:
+        model = Ticket
+        fields = ("id", "row", "seat", "flight", "order")
