@@ -119,6 +119,8 @@ class RouteSerializer(serializers.ModelSerializer):
 
 
 class CrewSerializer(serializers.ModelSerializer):
+    full_name = serializers.CharField(source='get_full_name', read_only=True)
+
     class Meta:
         model = Crew
         fields = ("id", "first_name", "last_name", "full_name")
@@ -129,6 +131,8 @@ class FlightSerializer(serializers.ModelSerializer):
     airplane = serializers.PrimaryKeyRelatedField(queryset=Airplane.objects.all())
     airplane_name = serializers.CharField(source='airplane.name', read_only=True)
     airplane_capacity = serializers.SerializerMethodField()
+    crew = CrewSerializer(many=True, read_only=True)
+    crew_ids = serializers.PrimaryKeyRelatedField(queryset=Crew.objects.all(), many=True, write_only=True)
 
     class Meta:
         model = Flight
@@ -137,6 +141,7 @@ class FlightSerializer(serializers.ModelSerializer):
             "route",
             "airplane",
             "crew",
+            "crew_ids",
             "airplane_name",
             "airplane_capacity",
             "departure_time",
@@ -148,15 +153,33 @@ class FlightSerializer(serializers.ModelSerializer):
 
     def create(self, validated_data):
         route_data = validated_data.pop('route')
-        airplane_data = validated_data.pop('airplane')
+        airplane = validated_data.pop('airplane')
+        crew_data = validated_data.pop('crew_ids', None)
 
-        flight = Flight.objects.create(**validated_data)
-
-        Route.objects.create(flight=flight, **route_data)
-
-        Airplane.objects.create(flight=flight, **airplane_data)
+        route = Route.objects.create(**route_data)
+        flight = Flight.objects.create(airplane=airplane, route=route, **validated_data)
+        if crew_data:
+            flight.crew.set(crew_data)
 
         return flight
+
+    def update(self, instance, validated_data):
+        route_data = validated_data.pop('route')
+        airplane = validated_data.pop('airplane')
+        crew_data = validated_data.pop('crew_ids', None)
+
+        for attr, value in route_data.items():
+            setattr(instance.route, attr, value)
+        instance.route.save()
+
+        instance.airplane = airplane
+        for attr, value in validated_data.items():
+            setattr(instance, attr, value)
+        instance.save()
+        if crew_data:
+            instance.crew.set(crew_data)
+
+        return instance
 
 
 class OrderSerializer(serializers.ModelSerializer):
@@ -172,3 +195,51 @@ class TicketSerializer(serializers.ModelSerializer):
     class Meta:
         model = Ticket
         fields = ("id", "row", "seat", "flight", "order")
+
+    def create(self, validated_data):
+        flight_data = validated_data.pop('flight')
+        order_data = validated_data.pop('order')
+
+        route_data = flight_data.pop('route')
+        airplane_data = flight_data.pop('airplane')
+        crew_data = flight_data.pop('crew_ids', None)
+
+        route = Route.objects.create(**route_data)
+        flight = Flight.objects.create(airplane=airplane_data, route=route, **flight_data)
+        if crew_data:
+            flight.crew.set(crew_data)
+
+        order = Order.objects.create(**order_data)
+
+        ticket = Ticket.objects.create(flight=flight, order=order, **validated_data)
+
+        return ticket
+
+    def update(self, instance, validated_data):
+        flight_data = validated_data.pop('flight')
+        order_data = validated_data.pop('order')
+
+        route_data = flight_data.pop('route')
+        airplane_data = flight_data.pop('airplane')
+        crew_data = flight_data.pop('crew_ids', None)
+
+        for attr, value in route_data.items():
+            setattr(instance.flight.route, attr, value)
+        instance.flight.route.save()
+
+        instance.flight.airplane = airplane_data
+        for attr, value in flight_data.items():
+            setattr(instance.flight, attr, value)
+        instance.flight.save()
+        if crew_data:
+            instance.flight.crew.set(crew_data)
+
+        for attr, value in order_data.items():
+            setattr(instance.order, attr, value)
+        instance.order.save()
+
+        for attr, value in validated_data.items():
+            setattr(instance, attr, value)
+        instance.save()
+
+        return instance
