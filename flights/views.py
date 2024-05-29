@@ -239,15 +239,20 @@ class TicketViewSet(viewsets.ModelViewSet):
         order_ids = request.query_params.getlist("order")
 
         if flight_ids:
-            flight_ids = [int(fid) for fid in flight_ids if fid.isdigit()]
+            try:
+                flight_ids = [int(fid) for fid in flight_ids]
+            except ValueError:
+                return Response({"detail": "Invalid flight id provided."}, status=status.HTTP_400_BAD_REQUEST)
             self.queryset = self.queryset.filter(flight_id__in=flight_ids)
 
         if order_ids:
-            order_ids = [int(oid) for oid in order_ids if oid.isdigit()]
+            try:
+                order_ids = [int(oid) for oid in order_ids]
+            except ValueError:
+                return Response({"detail": "Invalid order id provided."}, status=status.HTTP_400_BAD_REQUEST)
             self.queryset = self.queryset.filter(order_id__in=order_ids)
 
         return super().list(request, *args, **kwargs)
-
 
     def get_serializer_class(self):
         if self.action == "list":
