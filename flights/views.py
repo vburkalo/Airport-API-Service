@@ -1,5 +1,6 @@
 from drf_spectacular.utils import extend_schema, OpenApiParameter
 from rest_framework import viewsets, status
+from rest_framework.exceptions import ValidationError
 from rest_framework.response import Response
 
 from flights.models import (
@@ -113,9 +114,11 @@ class AirplaneViewSet(viewsets.ModelViewSet):
         airplane_types = request.query_params.getlist("airplane_types")
 
         if airplane_types:
-            airplane_types = [
-                int(type_id) for type_id in airplane_types if type_id.isdigit()
-            ]
+            try:
+                airplane_types = [int(type_id) for type_id in airplane_types]
+            except ValueError:
+                raise ValidationError("Invalid airplane_types parameter. Must be a list of integers.")
+
             self.queryset = self.queryset.filter(airplane_type_id__in=airplane_types)
 
         return super().list(request, *args, **kwargs)
