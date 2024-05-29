@@ -1,5 +1,7 @@
 from drf_spectacular.utils import extend_schema, OpenApiParameter
-from rest_framework import viewsets
+from rest_framework import viewsets, status
+from rest_framework.response import Response
+
 from flights.models import (
     Country,
     City,
@@ -77,7 +79,10 @@ class AirportViewSet(viewsets.ModelViewSet):
         city_ids = request.query_params.getlist("city")
 
         if city_ids:
-            city_ids = [int(cid) for cid in city_ids if cid.isdigit()]
+            try:
+                city_ids = [int(cid) for cid in city_ids]
+            except ValueError:
+                return Response("Invalid city ID format", status=status.HTTP_400_BAD_REQUEST)
             self.queryset = self.queryset.filter(closest_big_city_id__in=city_ids)
 
         return super().list(request, *args, **kwargs)
