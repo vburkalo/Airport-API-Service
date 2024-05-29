@@ -188,11 +188,17 @@ class FlightViewSet(viewsets.ModelViewSet):
         airplane_ids = request.query_params.getlist("airplane")
 
         if route_ids:
-            route_ids = [int(rid) for rid in route_ids if rid.isdigit()]
+            try:
+                route_ids = [int(rid) for rid in route_ids]
+            except ValueError:
+                return Response({"error": "Invalid route ID"}, status=status.HTTP_400_BAD_REQUEST)
             self.queryset = self.queryset.filter(route_id__in=route_ids)
 
         if airplane_ids:
-            airplane_ids = [int(aid) for aid in airplane_ids if aid.isdigit()]
+            try:
+                airplane_ids = [int(aid) for aid in airplane_ids]
+            except ValueError:
+                return Response({"error": "Invalid airplane ID"}, status=status.HTTP_400_BAD_REQUEST)
             self.queryset = self.queryset.filter(airplane_id__in=airplane_ids)
 
         return super().list(request, *args, **kwargs)
