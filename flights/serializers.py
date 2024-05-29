@@ -1,3 +1,4 @@
+from drf_spectacular.utils import extend_schema_field
 from users.models import User
 from rest_framework import serializers
 
@@ -34,6 +35,7 @@ class CitySerializer(serializers.ModelSerializer):
         model = City
         fields = ("id", "name", "country", "country_name")
 
+    @extend_schema_field(serializers.CharField)
     def get_country_name(self, obj):
         return obj.country.name
 
@@ -79,6 +81,7 @@ class AirplaneSerializer(serializers.ModelSerializer):
             "capacity",
         )
 
+    @extend_schema_field(serializers.IntegerField)
     def get_capacity(self, obj):
         return obj.capacity
 
@@ -121,13 +124,16 @@ class RouteSerializer(serializers.ModelSerializer):
             "destination_name",
         )
 
+    @extend_schema_field(serializers.CharField)
     def get_distance_display(self, obj):
         distance_miles = obj.distance * 0.621371
         return f"{obj.distance} km ({distance_miles:.2f} miles)"
 
+    @extend_schema_field(serializers.CharField)
     def get_source_name(self, obj):
         return obj.source.name
 
+    @extend_schema_field(serializers.CharField)
     def get_destination_name(self, obj):
         return obj.destination.name
 
@@ -164,34 +170,51 @@ class FlightSerializer(serializers.ModelSerializer):
             "arrival_time",
         )
 
+    @extend_schema_field(serializers.IntegerField)
     def get_airplane_capacity(self, obj):
         return obj.airplane.capacity
 
     def create(self, validated_data):
-        route_data = validated_data.pop("route")
-        airplane = validated_data.pop("airplane")
-        crew_data = validated_data.pop("crew_ids", None)
+        route_instance = validated_data.pop("route", None)
+        airplane_instance = validated_data.pop("airplane", None)
+        crew_data = validated_data.pop("crew_ids", [])
 
-        route = Route.objects.create(**route_data)
-        flight = Flight.objects.create(airplane=airplane, route=route, **validated_data)
+        airplane_id = None
+        if airplane_instance:
+            airplane_id = airplane_instance.id
+
+        if route_instance:
+            source_id = route_instance.source_id
+            destination_id = route_instance.destination_id
+
+            flight = Flight.objects.create(
+                airplane_id=airplane_id,
+                route_id=route_instance.id,
+                **validated_data
+            )
+
         if crew_data:
             flight.crew.set(crew_data)
 
         return flight
 
     def update(self, instance, validated_data):
-        route_data = validated_data.pop("route")
+        route_instance = validated_data.pop("route")
         airplane = validated_data.pop("airplane")
         crew_data = validated_data.pop("crew_ids", None)
 
-        for attr, value in route_data.items():
-            setattr(instance.route, attr, value)
+        instance.route.source = route_instance.source
+        instance.route.destination = route_instance.destination
+        instance.route.distance = route_instance.distance
         instance.route.save()
 
         instance.airplane = airplane
+
         for attr, value in validated_data.items():
             setattr(instance, attr, value)
+
         instance.save()
+
         if crew_data:
             instance.crew.set(crew_data)
 
@@ -222,7 +245,6 @@ class TicketReadOnlySerializer(serializers.ModelSerializer):
 
 
 class TicketSerializer(serializers.ModelSerializer):
-
     class Meta:
         model = Ticket
         fields = ("id", "row", "seat", "flight", "order")
